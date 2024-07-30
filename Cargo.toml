@@ -8,4 +8,7 @@ edition = "2021"
 name = "1"
 path = "src/bin/1.rs"
 
+[lib]
+path = "src/lib/lib.rs"
+
 [dependencies]

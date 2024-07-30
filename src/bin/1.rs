@@ -1,9 +1,9 @@
-use std::{collections::HashMap, fs::File, io::Read};
+use std::collections::HashMap;
+
+use advent_of_code::open_file;
 
 fn main() {
-    let mut file = File::open("./src/bin/1.txt").expect("Unable to find the file");
-    let mut content = String::new();
-    file.read_to_string(&mut content).expect("Cannot read file");
+    let content = open_file::open("./src/bin/1.txt");
     // print!("{:}", content);
 
     println!("{:}", part_one(&content));
@@ -23,8 +23,7 @@ fn part_one(content: &String) -> u32 {
             Some(num) => {
                 number_cache.push(num as u8);
             }
-            None => {
-            }
+            None => {}
         };
     }
     ans
@@ -54,14 +53,13 @@ fn part_two(content: &String) -> u32 {
             Some(num) => {
                 number_cache.push(num);
             }
-            None => {
-            }
+            None => {}
         };
     }
     ans
 }
 
-fn check_string_to_digit(text_cache: &mut Vec<char>) -> Option<u8>{
+fn check_string_to_digit(text_cache: &mut Vec<char>) -> Option<u8> {
     let string_digits: [&str; 9] = [
         "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
     ];
@@ -108,7 +106,10 @@ struct NumCache {
 
 impl NumCache {
     pub fn new() -> Self {
-        Self { value: vec![], size: 0 }
+        Self {
+            value: vec![],
+            size: 0,
+        }
     }
 
     pub fn push(&mut self, new_val: u8) {
@@ -138,7 +139,6 @@ impl NumCache {
         self.size = 0;
     }
 }
-
 
 #[test]
 fn test_part_2_a() {
