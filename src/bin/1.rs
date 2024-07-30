@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read};
+use std::{collections::HashMap, fs::File, io::Read};
 
 fn main() {
     let mut file = File::open("./src/bin/1.txt").expect("Unable to find the file");
@@ -12,41 +12,19 @@ fn main() {
 
 fn part_one(content: &String) -> u32 {
     let mut ans: u32 = 0;
-    let mut cache: String = String::new();
+    let mut number_cache: NumCache = NumCache::new();
     for c in content.chars() {
         if c == '\n' {
-            if cache.len() == 2 {
-                match cache.parse::<u32>() {
-                    Ok(num) => {
-                        if num >= 10 && num < 100 {
-                            ans += num;
-                        }
-                    }
-                    Err(_) => {
-                        continue;
-                    }
-                };
-            }
-            if cache.len() == 1 {
-                match cache.parse::<u32>() {
-                    Ok(num) => {
-                        ans += num * 10 + num;
-                    }
-                    Err(_) => {
-                        continue;
-                    }
-                };
-            }
-            cache.clear();
+            ans += number_cache.get_val() as u32;
+            number_cache.clear();
+            continue;
         }
         match c.to_digit(10) {
-            Some(_) => {
-                if cache.len() >= 2 {
-                    cache.pop();
-                }
-                cache.push(c);
+            Some(num) => {
+                number_cache.push(num as u8);
             }
-            None => {}
+            None => {
+            }
         };
     }
     ans
@@ -54,134 +32,118 @@ fn part_one(content: &String) -> u32 {
 
 fn part_two(content: &String) -> u32 {
     let mut ans: u32 = 0;
-    let mut number_cache: String = String::new();
-    let mut word_cache: String = String::new();
+    let mut number_cache: NumCache = NumCache::new();
+    let mut text_cache: Vec<char> = vec![];
     for c in content.chars() {
         if c == '\n' {
-            if number_cache.len() == 2 {
-                match number_cache.parse::<u32>() {
-                    Ok(num) => {
-                        if num >= 10 && num < 100 {
-                            ans += num;
-                        }
-                    }
-                    Err(_) => {
-                        continue;
-                    }
-                };
-            }
-            if number_cache.len() == 1 {
-                match number_cache.parse::<u32>() {
-                    Ok(num) => {
-                        ans += num * 10 + num;
-                    }
-                    Err(_) => {
-                        continue;
-                    }
-                };
-            }
+            ans += number_cache.get_val() as u32;
             number_cache.clear();
-            word_cache.clear();
+            text_cache.clear();
             continue;
         }
         match c.to_digit(10) {
-            Some(_) => {
-                if number_cache.len() >= 2 {
-                    number_cache.pop();
-                }
-                number_cache.push(c);
+            Some(num) => {
+                number_cache.push(num as u8);
+                text_cache.clear();
             }
             None => {
-                word_cache.push(c);
+                text_cache.push(c);
             }
         };
-        // println!("{:}", word_cache);
-        match check_string_to_digit(&word_cache) {
-            ConvertResult::None => {
-                // if word_cache.len() > 0 {
-                //     word_cache = word_cache.pop().unwrap().to_string();
-                // }
-                word_cache.clear();
+        match check_string_to_digit(&mut text_cache) {
+            Some(num) => {
+                number_cache.push(num);
             }
-            ConvertResult::Some => {
-                // println!("{:}", word_cache);
+            None => {
             }
-            ConvertResult::Match(c) => {
-                println!("Match: {:}", c);
-                if number_cache.len() >= 2 {
-                    number_cache.pop();
-                }
-                number_cache.push(c);
-                // if word_cache.len() > 0 {
-                //     word_cache = word_cache.pop().unwrap().to_string();
-                // }
-                word_cache.clear();
-            }
-            ConvertResult::Duplicate => {
-                word_cache.pop();
-            }
-        }
+        };
     }
     ans
 }
 
-enum ConvertResult {
-    None,
-    Some,
-    Match(char),
-    Duplicate
-}
-
-fn check_string_to_digit(input: &String) -> ConvertResult {
+fn check_string_to_digit(text_cache: &mut Vec<char>) -> Option<u8>{
     let string_digits: [&str; 9] = [
         "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
     ];
-    if input.len() > 5 {
-        return ConvertResult::None;
+
+    let mut map: HashMap<&str, u8> = HashMap::new();
+    for (i, w) in string_digits.into_iter().enumerate() {
+        map.insert(w, i as u8 + 1);
     }
-    let mut some_match = false;
-    for (i, sd) in string_digits.into_iter().enumerate() {
-        let mut sd_array = sd.chars();
-        let mut is_match = true;
-        if input.len() != sd.len() {
-            is_match = false;
-        } else {
-            // println!("  {:}, {:}", input, sd);
+
+    let size = text_cache.len();
+    let mut pointer: usize = 0;
+
+    while pointer < size {
+        let mut word: String = String::new();
+        for i in pointer..size {
+            word.push(text_cache[i]);
         }
-        let mut last_char: char = ' ';
-        for c in input.chars() {
-            if last_char == c {
-                return ConvertResult::Duplicate;
+        // println!("word: {:}", word);
+        match map.get(word.as_str()) {
+            Some(val) => {
+                match text_cache.pop() {
+                    Some(last_char) => {
+                        text_cache.clear();
+                        text_cache.push(last_char);
+                    }
+                    None => {
+                        text_cache.clear();
+                    }
+                };
+                // println!("val: {:}", val);
+                return Some(*val);
             }
-            last_char = c;
-            let sd_char = match sd_array.nth(0) {
-                Some(sd_c) => sd_c,
-                None => {
-                    is_match = false;
-                    break;
-                }
-            };
-            // println!("{:}, sd_char: {:}, c: {:}", sd_char != c, sd_char, c);
-            if sd_char != c {
-                is_match = false;
-                break;
-            } else {
-                some_match = true;
-            }
+            None => {}
         }
-        if is_match == true {
-            return ConvertResult::Match(char::from_digit((i + 1) as u32, 10).unwrap());
-        }
+        pointer += 1;
     }
-    if some_match == true {
-        return ConvertResult::Some;
-    }
-    return ConvertResult::None;
+    return None;
 }
+
+struct NumCache {
+    value: Vec<u8>,
+    size: usize,
+}
+
+impl NumCache {
+    pub fn new() -> Self {
+        Self { value: vec![], size: 0 }
+    }
+
+    pub fn push(&mut self, new_val: u8) {
+        if new_val <= 0 || new_val > 9 {
+            return;
+        }
+        if self.size >= 2 {
+            self.value.pop();
+            self.size -= 1;
+        }
+        self.value.push(new_val);
+        self.size += 1;
+    }
+
+    pub fn get_val(&self) -> u8 {
+        if self.size == 1 {
+            return self.value[0] * 10 + self.value[0];
+        }
+        if self.size == 2 {
+            return self.value[0] * 10 + self.value[1];
+        }
+        return 0;
+    }
+
+    pub fn clear(&mut self) {
+        self.value.clear();
+        self.size = 0;
+    }
+}
+
 
 #[test]
 fn test_part_2_a() {
     let intput = "ggrbl5cthnzlsbjssixpt\n".to_string();
+    println!("{:}", intput);
     let result = part_two(&intput);
     assert_eq!(result, 56);
 }
