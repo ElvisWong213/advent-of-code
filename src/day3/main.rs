@@ -1,38 +1,37 @@
+use std::collections::HashMap;
+
 use advent_of_code::open_file;
 
 fn main() {
     let content = open_file::open("./src/day3/input.txt");
     // println!("{}", content);
-    println!("{}", part_one(&content));
+    let mut blueprint: BluePrint = BluePrint::new();
+    blueprint.load_data(&content);
+    println!("{}", part_one(&blueprint));
+    println!("{}", part_two(&blueprint));
 }
 
-fn part_one(content: &String) -> u32 {
+fn part_one(blueprint: &BluePrint) -> u32 {
     let mut ans: u32 = 0;
-    let array = convert_string_to_2d_array(&content);
-    // println!("{}", array.len());
-    for y_index in 0..array.len() {
-        let mut number: String = String::new();
-        let mut adjacent_to_symbol: bool = false;
-        for x_index in 0..array[y_index].len() {
-            // println!("{}", &array[y_index][x_index]);
-            if is_number(&array[y_index][x_index]) {
-                number.push(array[y_index][x_index]);
-                if adjacent_to_symbol == false && is_adjacent_to_symbol(&array, x_index, y_index) {
-                    adjacent_to_symbol = true;
-                }
-            } else {
-                if number.len() > 0 && adjacent_to_symbol == true {
-                    println!("{}", number);
-                    ans += number.parse::<u32>().unwrap();
-                }
-                number.clear();
-                adjacent_to_symbol = false;
-            }
-        }
-        if number.len() > 0 && adjacent_to_symbol == true {
-            ans += number.parse::<u32>().unwrap();
+
+    for num in &blueprint.number_array {
+        for coordinate in &num.1 {
+             if blueprint.is_adjacent_to_symbol(&coordinate) == true {
+                 ans += num.0 as u32;
+                 break;
+             }
         }
     }
+    return ans;
+}
+
+fn part_two(blueprint: &BluePrint) -> u32 {
+    let mut ans: u32 = 0;
+
+    for coordinate in &blueprint.gear_array {
+        ans += blueprint.multiply_two_adjacent_numbers(coordinate);
+    }
+    
     return ans;
 }
 
@@ -54,51 +53,151 @@ fn is_symbol(input: &char) -> bool {
     return false;
 }
 
-fn is_adjacent_to_symbol(array: &Vec<Vec<char>>, x: usize, y: usize) -> bool {
-    let mut y_min = y;
-    if y_min != 0 {
-        y_min -= 1;
-    }
-    let mut x_min = x;
-    if x_min != 0 {
-        x_min -= 1;
-    }
-    for y_index in y_min..=y + 1 {
-        if y_index >= array.len() {
-            continue;
-        }
-        for x_index in x_min..=x + 1 {
-            if x_index >= array[y_index].len() {
-                continue;
-            }
-            if x_index == x && y_index == y {
-                continue;
-            }
-            if is_symbol(&array[y_index][x_index]) {
-                return true;
-            }
-        }
-    }
-    return false;
+#[derive(Hash, Eq, PartialEq, Clone, Copy)]
+struct Coordinate {
+    x: usize,
+    y: usize
 }
 
-fn convert_string_to_2d_array(input: &String) -> Vec<Vec<char>> {
-    let mut output: Vec<Vec<char>> = vec![vec![]];
-    let mut line: Vec<char> = vec![];
-    for c in input.chars() {
-        if c != '\n' {
-            line.push(c);
-        } else {
-            if line.len() > 0 {
-                output.push(line.clone());
+impl Coordinate {
+    pub fn new(x: usize, y: usize) -> Self {
+        Self { x, y }
+    }
+
+    pub fn next_row(&mut self) {
+        self.x = 0;
+        self.y += 1;
+    }
+}
+
+struct BluePrint {
+    number_map: HashMap<Coordinate, u16>,
+    symbol_map: HashMap<Coordinate, char>,
+    number_array: Vec<(u16, Vec<Coordinate>)>,
+    gear_array: Vec<Coordinate>
+}
+
+impl BluePrint {
+    pub fn new() -> Self {
+        Self { number_map: HashMap::new(), symbol_map: HashMap::new(), number_array: vec![], gear_array: vec![] }
+    }
+
+    pub fn load_data(&mut self, input: &String) {
+        let mut coordinate = Coordinate::new(0, 0);
+        let mut number_cache: String = String::new();
+        let mut number_coordinates: Vec<Coordinate> = vec![];
+        for c in input.chars() {
+            if c == '\n' {
+                self.load_number(&coordinate, &c, &mut number_cache, &mut number_coordinates);
+                coordinate.next_row();
+                continue;
             }
-            line.clear();
+            self.load_number(&coordinate, &c, &mut number_cache, &mut number_coordinates);
+            self.load_symbol(&coordinate, &c);
+            coordinate.x += 1;
         }
     }
-    if line.len() > 0 {
-        output.push(line.clone());
+
+    fn load_number(&mut self, coordinate: &Coordinate, c: &char, number_cache: &mut String, number_coordinates: &mut Vec<Coordinate>) {
+        if is_number(c) {
+            number_cache.push(*c);
+            number_coordinates.push(*coordinate);
+            return;
+        } 
+        if number_cache.len() > 0 {
+            let number: u16 = number_cache.parse().unwrap();
+            for coordinate in &mut *number_coordinates {
+                self.number_map.insert(*coordinate, number);
+            }
+            self.number_array.push((number, number_coordinates.to_vec()));
+            number_cache.clear();
+            number_coordinates.clear();
+        }
     }
-    return output;
+
+    fn load_symbol(&mut self, coordinate: &Coordinate, c: &char) {
+        if is_symbol(c) {
+            self.symbol_map.insert(*coordinate, *c);
+        }
+        if *c == '*' {
+            self.gear_array.push(*coordinate);
+        }
+    }
+
+    pub fn is_adjacent_to_symbol(&self, coordinate: &Coordinate) -> bool {
+        let mut y_min = coordinate.y;
+        if y_min != 0 {
+            y_min -= 1;
+        }
+        let mut x_min = coordinate.x;
+        if x_min != 0 {
+            x_min -= 1;
+        }
+        for y_index in y_min..=coordinate.y + 1 {
+            for x_index in x_min..=coordinate.x + 1 {
+                if x_index == coordinate.x && y_index == coordinate.y {
+                    continue;
+                }
+                let target_coordinate = Coordinate::new(x_index, y_index);
+                match self.symbol_map.get(&target_coordinate) {
+                    Some(_) => {
+                        return true;
+                    }
+                    None => {}
+                    
+                }
+            }
+        }
+        return false;
+    }
+
+    pub fn multiply_two_adjacent_numbers(&self, coordinate: &Coordinate) -> u32 {
+        let mut count: u8 = 0;
+        let mut output: u32 = 1;
+        let mut y_min = coordinate.y;
+        if y_min != 0 {
+            y_min -= 1;
+        }
+        let mut x_min = coordinate.x;
+        if x_min != 0 {
+            x_min -= 1;
+        }
+        for y_index in y_min..=coordinate.y + 1 {
+            let mut last_val: Option<u16> = None;
+            for x_index in x_min..=coordinate.x + 1 {
+                if x_index == coordinate.x && y_index == coordinate.y {
+                    continue;
+                }
+                let target_coordinate = Coordinate::new(x_index, y_index);
+                match self.number_map.get(&target_coordinate) {
+                    Some(val) => {
+                        match last_val {
+                            Some(last) => {
+                                if last == *val {
+                                    continue;
+                                }
+                            }
+                            None => {}
+                        }
+                        count += 1;
+                        if count > 2 {
+                            return 0;
+                        }
+                        output *= *val as u32;
+                        last_val = Some(*val);
+                    }
+                    None => {
+                        last_val = None;
+                    }
+                    
+                }
+            }
+        }
+        if count == 2 {
+            return output;
+        }
+        return 0;
+    }
 }
 
 #[test]
@@ -114,7 +213,9 @@ fn test_part_1() {
 ...$.*....
 .664.598.."
         .to_string();
-    assert_eq!(part_one(&input), 4361);
+    let mut bp = BluePrint::new();
+    bp.load_data(&input);
+    assert_eq!(part_one(&bp), 4361);
 }
 
 #[test]
@@ -130,5 +231,25 @@ fn test_part_1_2() {
 ...$.*....
 .664.598.."
         .to_string();
-    assert_eq!(part_one(&input), 4361);
+    let mut bp = BluePrint::new();
+    bp.load_data(&input);
+    assert_eq!(part_one(&bp), 4361);
+}
+
+#[test]
+fn test_part_2() {
+    let input = "467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598.."
+        .to_string();
+    let mut bp = BluePrint::new();
+    bp.load_data(&input);
+    assert_eq!(part_two(&bp), 467835);
 }
