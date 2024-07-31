@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use advent_of_code::open_file;
 
 fn main() {
-    let content = open_file::open("./src/bin/1.txt");
+    let content = open_file::open("./src/day1/input.txt");
     // print!("{:}", content);
 
     println!("{:}", part_one(&content));

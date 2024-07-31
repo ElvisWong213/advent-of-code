@@ -1,7 +1,7 @@
 use advent_of_code::open_file;
 
 fn main() {
-    let content = open_file::open("./src/bin/2.txt");
+    let content = open_file::open("./src/day2/input.txt");
     // println!("{:}", content);
 
     // let mut games: Vec<Game> = vec![];

@@ -5,8 +5,16 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [[bin]]
-name = "1"
-path = "src/bin/1.rs"
+name = "day1"
+path = "src/day1/main.rs"
+
+[[bin]]
+name = "day2"
+path = "src/day2/main.rs"
+
+[[bin]]
+name = "day3"
+path = "src/day3/main.rs"
 
 [lib]
 path = "src/lib/lib.rs"
