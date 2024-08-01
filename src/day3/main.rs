@@ -47,7 +47,7 @@ fn is_number(input: &char) -> bool {
 }
 
 fn is_symbol(input: &char) -> bool {
-    if is_number(input) == false && *input != '.' {
+    if is_number(input) == false && *input != '.' && *input != '\n' {
         return true;
     }
     return false;
