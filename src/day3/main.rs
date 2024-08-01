@@ -87,14 +87,12 @@ impl BluePrint {
         let mut number_cache: String = String::new();
         let mut number_coordinates: Vec<Coordinate> = vec![];
         for c in input.chars() {
-            if c == '\n' {
-                self.load_number(&coordinate, &c, &mut number_cache, &mut number_coordinates);
-                coordinate.next_row();
-                continue;
-            }
             self.load_number(&coordinate, &c, &mut number_cache, &mut number_coordinates);
             self.load_symbol(&coordinate, &c);
             coordinate.x += 1;
+            if c == '\n' {
+                coordinate.next_row();
+            }
         }
     }
 
@@ -171,13 +169,8 @@ impl BluePrint {
                 let target_coordinate = Coordinate::new(x_index, y_index);
                 match self.number_map.get(&target_coordinate) {
                     Some(val) => {
-                        match last_val {
-                            Some(last) => {
-                                if last == *val {
-                                    continue;
-                                }
-                            }
-                            None => {}
+                        if self.is_equal_last_val(&last_val, val) == true {
+                            continue;
                         }
                         count += 1;
                         if count > 2 {
@@ -197,6 +190,18 @@ impl BluePrint {
             return output;
         }
         return 0;
+    }
+
+    fn is_equal_last_val(&self, last_val: &Option<u16>, current_val: &u16) -> bool {
+        match last_val {
+            Some(last) => {
+                if last == current_val {
+                    return true;
+                }
+            }
+            None => {}
+        }
+        return false;
     }
 }
 
