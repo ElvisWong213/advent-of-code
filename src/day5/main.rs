@@ -7,6 +7,7 @@ fn main() {
     let content = open("./src/day5/input.txt");
 
     println!("{}", part_one(&content));
+    println!("{}", part_two(&content));
 }
 
 fn part_one(input: &String) -> u64 {
@@ -42,6 +43,49 @@ fn part_one(input: &String) -> u64 {
         }
         if val < ans {
             ans = val;
+        }
+    }
+    return ans;
+}
+
+fn part_two(input: &String) -> u64 {
+    let mut ans: u64 = u64::MAX;
+    let lines = input.lines();
+    let mut map_type: &str = "";
+    let mut seed_array: Vec<&str> = vec![];
+    let mut maps_array: Vec<Vec<Map>> = Vec::with_capacity(7);
+    for _ in 0..7 {
+        maps_array.push(vec![]);
+    }
+    for line in lines {
+        let data: Vec<&str> = line.split(':').collect();
+        if data.len() == 2 {
+            map_type = data[0].split_whitespace().collect::<Vec<&str>>()[0];
+            if map_type == "seeds" {
+                seed_array = data[1].split_whitespace().collect();
+            }
+            continue;
+        }
+        load_data(&mut maps_array, data[0], &map_type);
+    }
+    for seed_index in 0..seed_array.len() / 2 {
+        let start: u64 = seed_array[seed_index * 2].parse().unwrap();
+        let length: u64 = seed_array[seed_index * 2 + 1].parse().unwrap();
+        for seed in start..start + length {
+            let mut end: u64 = seed;
+            for maps in &maps_array {
+                // println!("{}", maps.len());
+                for map in maps {
+                    if end >= map.source_start && end <= map.source_end {
+                        end = end - map.source_start + map.destination_start;
+                        break;
+                    }
+                }
+            }
+            println!("{} {}", seed, end);
+            if end < ans {
+                ans = end;
+            }
         }
     }
     return ans;
@@ -134,4 +178,43 @@ humidity-to-location map:
 56 93 4"
         .to_string();
     assert_eq!(part_one(&input), 35);
+}
+
+#[test]
+fn test_part_two() {
+    let input: String = "seeds: 79 14 55 13
+
+seed-to-soil map:
+50 98 2
+52 50 48
+
+soil-to-fertilizer map:
+0 15 37
+37 52 2
+39 0 15
+
+fertilizer-to-water map:
+49 53 8
+0 11 42
+42 0 7
+57 7 4
+
+water-to-light map:
+88 18 7
+18 25 70
+
+light-to-temperature map:
+45 77 23
+81 45 19
+68 64 13
+
+temperature-to-humidity map:
+0 69 1
+1 0 69
+
+humidity-to-location map:
+60 56 37
+56 93 4"
+        .to_string();
+    assert_eq!(part_two(&input), 46);
 }
