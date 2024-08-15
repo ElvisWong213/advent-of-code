@@ -11,7 +11,7 @@ fn main() {
     println!("{}", part_two(&content));
 }
 
-fn part_one(input: &String) -> u16 {
+fn part_one(input: &str) -> u16 {
     let mut ans: u16 = 0;
     let lines: Vec<&str> = input.lines().collect();
     for line in lines {
@@ -23,10 +23,10 @@ fn part_one(input: &String) -> u16 {
         }
         ans += 2_u16.pow(total_match as u32 - 1);
     }
-    return ans;
+    ans
 }
 
-fn part_two(input: &String) -> u32 {
+fn part_two(input: &str) -> u32 {
     let lines: Vec<&str> = input.lines().collect();
     let mut games: Vec<Game> = vec![];
     let mut ans: u32 = 0;
@@ -50,7 +50,7 @@ fn part_two(input: &String) -> u32 {
             }
         }
     }
-    return ans;
+    ans
 }
 
 fn total_match_number(set_a: &HashSet<u8>, set_b: &HashSet<u8>) -> u8 {
@@ -59,7 +59,7 @@ fn total_match_number(set_a: &HashSet<u8>, set_b: &HashSet<u8>) -> u8 {
     for _ in intersrtion {
         count += 1;
     }
-    return count;
+    count
 }
 
 struct Game {
@@ -117,7 +117,7 @@ impl Game {
                 }
             }
         }
-        return output;
+        output
     }
 }
 
@@ -128,9 +128,8 @@ Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
 Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
 Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
 Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
-Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"
-        .to_string();
-    assert_eq!(part_one(&input), 13);
+Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11";
+    assert_eq!(part_one(input), 13);
 }
 
 #[test]
@@ -140,7 +139,6 @@ Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
 Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
 Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
 Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
-Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"
-        .to_string();
-    assert_eq!(part_two(&input), 30);
+Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11";
+    assert_eq!(part_two(input), 30);
 }

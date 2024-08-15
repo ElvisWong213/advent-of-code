@@ -9,28 +9,28 @@ fn main() {
     part_two(&content);
 }
 
-fn part_one(content: &String) {
+fn part_one(content: &str) {
     let lines: Vec<&str> = content.lines().collect();
     let target_game: Game = Game::new_target(12, 13, 14);
     let mut id_sum: u16 = 0;
     for line in lines {
-        if line.len() == 0 {
+        if line.is_empty() {
             continue;
         }
         let game = Game::new(line);
         // games.push(game);
-        if game.is_contain(&target_game) == true {
+        if game.is_contain(&target_game) {
             id_sum += game.id;
         }
     }
     println!("{:}", id_sum);
 }
 
-fn part_two(content: &String) {
+fn part_two(content: &str) {
     let lines: Vec<&str> = content.lines().collect();
     let mut sum: u32 = 0;
     for line in lines {
-        if line.len() == 0 {
+        if line.is_empty() {
             continue;
         }
         let game = Game::new(line);
@@ -68,9 +68,9 @@ impl Game {
             let results: Vec<&str> = draw.split(", ").collect();
             for result in results {
                 // println!("{:}", result);
-                let data: Vec<&str> = result.split(" ").collect();
+                let data: Vec<&str> = result.split(' ').collect();
                 let value = data[0].parse().unwrap();
-                let key = data[1].replace("\n", "");
+                let key = data[1].replace('\n', "");
                 match key.as_str() {
                     "red" => {
                         if value > red {
@@ -106,11 +106,11 @@ impl Game {
         {
             return true;
         }
-        return false;
+        false
     }
 
     pub fn power(&self) -> u32 {
-        return self.red as u32 * self.green as u32 * self.blue as u32;
+        self.red as u32 * self.green as u32 * self.blue as u32
     }
 }
 
@@ -147,5 +147,5 @@ fn test() {
     let input= "Game 95: 1 red, 1 blue, 3 green; 2 green, 6 blue; 1 green, 13 blue, 1 red; 3 green, 15 blue\n";
     let game = Game::new(input);
     let target_game: Game = Game::new_target(12, 13, 14);
-    assert_eq!(game.is_contain(&target_game), false);
+    assert!(!game.is_contain(&target_game));
 }

@@ -16,13 +16,13 @@ fn part_one(blueprint: &BluePrint) -> u32 {
 
     for num in &blueprint.number_array {
         for coordinate in &num.1 {
-             if blueprint.is_adjacent_to_symbol(&coordinate) == true {
+             if blueprint.is_adjacent_to_symbol(coordinate) {
                  ans += num.0 as u32;
                  break;
              }
         }
     }
-    return ans;
+    ans
 }
 
 fn part_two(blueprint: &BluePrint) -> u32 {
@@ -32,25 +32,25 @@ fn part_two(blueprint: &BluePrint) -> u32 {
         ans += blueprint.multiply_two_adjacent_numbers(coordinate);
     }
     
-    return ans;
+    ans
 }
 
 fn is_number(input: &char) -> bool {
     match input {
         '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '0' => {
-            return true;
+            true
         }
         _ => {
-            return false;
+            false
         }
     }
 }
 
 fn is_symbol(input: &char) -> bool {
-    if is_number(input) == false && *input != '.' && *input != '\n' {
+    if !is_number(input) && *input != '.' && *input != '\n' {
         return true;
     }
-    return false;
+    false
 }
 
 #[derive(Hash, Eq, PartialEq, Clone, Copy)]
@@ -82,7 +82,7 @@ impl BluePrint {
         Self { number_map: HashMap::new(), symbol_map: HashMap::new(), number_array: vec![], gear_array: vec![] }
     }
 
-    pub fn load_data(&mut self, input: &String) {
+    pub fn load_data(&mut self, input: &str) {
         let mut coordinate = Coordinate::new(0, 0);
         let mut number_cache: String = String::new();
         let mut number_coordinates: Vec<Coordinate> = vec![];
@@ -146,7 +146,7 @@ impl BluePrint {
                 }
             }
         }
-        return false;
+        false
     }
 
     pub fn multiply_two_adjacent_numbers(&self, coordinate: &Coordinate) -> u32 {
@@ -169,7 +169,7 @@ impl BluePrint {
                 let target_coordinate = Coordinate::new(x_index, y_index);
                 match self.number_map.get(&target_coordinate) {
                     Some(val) => {
-                        if self.is_equal_last_val(&last_val, val) == true {
+                        if self.is_equal_last_val(&last_val, val) {
                             continue;
                         }
                         count += 1;
@@ -189,7 +189,7 @@ impl BluePrint {
         if count == 2 {
             return output;
         }
-        return 0;
+        0
     }
 
     fn is_equal_last_val(&self, last_val: &Option<u16>, current_val: &u16) -> bool {
@@ -201,7 +201,7 @@ impl BluePrint {
             }
             None => {}
         }
-        return false;
+        false
     }
 }
 
@@ -216,10 +216,9 @@ fn test_part_1() {
 ..592.....
 ......755.
 ...$.*....
-.664.598.."
-        .to_string();
+.664.598..";
     let mut bp = BluePrint::new();
-    bp.load_data(&input);
+    bp.load_data(input);
     assert_eq!(part_one(&bp), 4361);
 }
 
@@ -234,10 +233,9 @@ fn test_part_1_2() {
 ..592.....
 ......755.
 ...$.*....
-.664.598.."
-        .to_string();
+.664.598..";
     let mut bp = BluePrint::new();
-    bp.load_data(&input);
+    bp.load_data(input);
     assert_eq!(part_one(&bp), 4361);
 }
 
@@ -252,9 +250,8 @@ fn test_part_2() {
 ..592.....
 ......755.
 ...$.*....
-.664.598.."
-        .to_string();
+.664.598..";
     let mut bp = BluePrint::new();
-    bp.load_data(&input);
+    bp.load_data(input);
     assert_eq!(part_two(&bp), 467835);
 }
