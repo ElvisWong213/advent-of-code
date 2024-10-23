@@ -63,6 +63,9 @@ fn conver_to_2d_index(index: usize, row_size: usize) -> (i32, i32) {
 fn set_size(content: &str, row_size: &mut usize, array: &mut Vec<char>) {
     let mut finish_count_row: bool = false;
     for c in content.chars() {
+        if c == '\r' {
+            continue;
+        }
         if c == '\n' {
             finish_count_row = true;
             continue;
