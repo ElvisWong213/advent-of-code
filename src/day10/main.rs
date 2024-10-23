@@ -16,12 +16,48 @@ fn part_one(input: &str) -> usize {
     let mut nodes : Vec<Node> = vec![];
     set_size(input, &mut row_size, &mut array);
     load_to_nodes(&array, &mut nodes, &mut start_index, row_size);
+
     let order: Vec<usize> = bfs(&mut nodes, start_index);
-    order.len()/2
+    order.len() / 2
 }
 
 fn part_two(input: &str) -> usize {
-    0
+    let mut row_size: usize = 0;
+    let mut array: Vec<char> = vec![];
+    let mut start_index: usize = 0;
+    let mut nodes : Vec<Node> = vec![];
+    set_size(input, &mut row_size, &mut array);
+    load_to_nodes(&array, &mut nodes, &mut start_index, row_size);
+
+    let order: Vec<usize> = bfs(&mut nodes, start_index);
+    let area: usize = get_area(&order, row_size);
+    get_number_of_nodes_inside_pips(order.len(), area)
+}
+
+fn get_area(nodes: &[usize], row_size: usize) -> usize {
+    let mut total: i32 = 0;
+    for i in 0..nodes.len() - 1 {
+        let node_a = conver_to_2d_index(nodes[i], row_size);
+        let node_b = conver_to_2d_index(nodes[i + 1], row_size);
+        total += node_a.0 * node_b.1 - node_a.1 * node_b.0;
+    }
+    let first_node = conver_to_2d_index(nodes[0], row_size);
+    let last_node  = conver_to_2d_index(nodes[nodes.len() - 1], row_size);
+    total += last_node.0 * first_node.1 - last_node.1 * first_node.0;
+    if total < 0 {
+        total *= -1;
+    }
+    total as usize / 2
+}
+
+fn get_number_of_nodes_inside_pips(number_of_pips: usize, area: usize) -> usize {
+    area - number_of_pips / 2 + 1
+}
+
+fn conver_to_2d_index(index: usize, row_size: usize) -> (i32, i32) {
+    let x: i32 = (index % row_size) as i32;
+    let y: i32 = (index / row_size) as i32;
+    (x, y)
 }
 
 fn set_size(content: &str, row_size: &mut usize, array: &mut Vec<char>) {
@@ -102,6 +138,7 @@ fn is_connect(out_c: &char, direction: Direction) -> bool {
 fn load_to_nodes(array: &[char], nodes: &mut Vec<Node>, start_index: &mut usize, row_size: usize) {
     for (index, c) in array.iter().enumerate() {
         let mut node: Node = Node::new();
+        // println!("{} {}", index, c);
         match c {
             '|' => {
                 if let Some(i) = top(index, row_size, array.len()) {
@@ -282,4 +319,14 @@ fn test_part_one() {
 .L-J.
 .....";
     assert_eq!(part_one(input), 4);
+}
+
+#[test]
+fn test_part_two() {
+    let input = ".....
+.S-7.
+.|.|.
+.L-J.
+.....";
+    assert_eq!(part_two(input), 1);
 }
