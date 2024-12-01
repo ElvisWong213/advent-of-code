@@ -4,158 +4,70 @@ use advent_of_code::open_file;
 
 fn main() {
     let content = open_file::open("./src/day1/input.txt");
-    // print!("{:}", content);
 
     println!("{:}", part_one(&content));
     println!("{:}", part_two(&content));
 }
 
 fn part_one(content: &str) -> u32 {
-    let mut ans: u32 = 0;
-    let mut number_cache: NumCache = NumCache::new();
-    for c in content.chars() {
-        if c == '\n' {
-            ans += number_cache.get_val() as u32;
-            number_cache.clear();
-            continue;
-        }
-        if let Some(num) = c.to_digit(10) {
-            number_cache.push(num as u8);
+    let mut left: Vec<u32> = vec![];
+    let mut right: Vec<u32> = vec![];
+
+    for (index, number) in content.split_whitespace().enumerate() {
+        if index % 2 == 0 {
+            left.push(number.parse().unwrap());
+        } else {
+            right.push(number.parse().unwrap());
         }
     }
+    right.sort();
+    left.sort();
+
+    if right.len() != left.len() {
+        println!("Array size are different");
+        return 0;
+    }
+
+    let mut ans: u32 = 0;
+    for index in 0..right.len() {
+        let left_num = left[index];
+        let right_num = right[index];
+        if left_num > right_num {
+            ans += left_num - right_num;
+        } else {
+            ans += right_num - left_num;
+        }
+    }
+
     ans
 }
 
 fn part_two(content: &str) -> u32 {
-    let mut ans: u32 = 0;
-    let mut number_cache: NumCache = NumCache::new();
-    let mut text_cache: Vec<char> = vec![];
-    for c in content.chars() {
-        if c == '\n' {
-            ans += number_cache.get_val() as u32;
-            number_cache.clear();
-            text_cache.clear();
-            continue;
-        }
-        match c.to_digit(10) {
-            Some(num) => {
-                number_cache.push(num as u8);
-                text_cache.clear();
-            }
-            None => {
-                text_cache.push(c);
-            }
-        };
-        if let Some(num) = check_string_to_digit(&mut text_cache) {
-            number_cache.push(num);
-        }
-    }
-    ans
-}
+    let mut left: Vec<u32> = vec![];
+    let mut right: HashMap<u32, u32> = HashMap::new();
 
-fn check_string_to_digit(text_cache: &mut Vec<char>) -> Option<u8> {
-    let string_digits: [&str; 9] = [
-        "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-    ];
-
-    let mut map: HashMap<&str, u8> = HashMap::new();
-    for (i, w) in string_digits.into_iter().enumerate() {
-        map.insert(w, i as u8 + 1);
-    }
-
-    let size = text_cache.len();
-    let mut pointer: usize = 0;
-
-    while pointer < size {
-        let mut word: String = String::new();
-        for i in pointer..size {
-            word.push(text_cache[i]);
-        }
-        // println!("word: {:}", word);
-        if let Some(val) = map.get(word.as_str()) {
-            match text_cache.pop() {
-                Some(last_char) => {
-                    text_cache.clear();
-                    text_cache.push(last_char);
+    for (index, number) in content.split_whitespace().enumerate() {
+        if index % 2 == 0 {
+            left.push(number.parse().unwrap());
+        } else {
+            let right_num: u32 = number.parse().unwrap();
+            match right.get(&right_num) {
+                Some(count) => {
+                    right.insert(right_num, count + 1);
                 }
                 None => {
-                    text_cache.clear();
+                    right.insert(right_num, 1);
                 }
-            };
-            // println!("val: {:}", val);
-            return Some(*val);
-        }
-        pointer += 1;
-    }
-    None
-}
-
-struct NumCache {
-    value: Vec<u8>,
-    size: usize,
-}
-
-impl NumCache {
-    pub fn new() -> Self {
-        Self {
-            value: vec![],
-            size: 0,
+            }
         }
     }
 
-    pub fn push(&mut self, new_val: u8) {
-        if new_val == 0 || new_val > 9 {
-            return;
+    let mut ans: u32 = 0;
+    for left_num in left {
+        if let Some(count) = right.get(&left_num) {
+            ans += left_num * count;
         }
-        if self.size >= 2 {
-            self.value.pop();
-            self.size -= 1;
-        }
-        self.value.push(new_val);
-        self.size += 1;
     }
 
-    pub fn get_val(&self) -> u8 {
-        if self.size == 1 {
-            return self.value[0] * 10 + self.value[0];
-        }
-        if self.size == 2 {
-            return self.value[0] * 10 + self.value[1];
-        }
-        0
-    }
-
-    pub fn clear(&mut self) {
-        self.value.clear();
-        self.size = 0;
-    }
-}
-
-#[test]
-fn test_part_2_a() {
-    let intput = "ggrbl5cthnzlsbjssixpt\n";
-    println!("{:}", intput);
-    let result = part_two(intput);
-    assert_eq!(result, 56);
-}
-
-#[test]
-fn test_part_2_b() {
-    let intput = "four98six83five\n";
-    let result = part_two(intput);
-    assert_eq!(result, 45);
-}
-
-#[test]
-fn test_part_2_c() {
-    let intput = "sixthree8\n";
-    let result = part_two(intput);
-    assert_eq!(result, 68);
-}
-
-#[test]
-fn test_part_2_d() {
-    let intput = "nineeight\n";
-    let result = part_two(intput);
-    assert_eq!(result, 98);
+    ans
 }
