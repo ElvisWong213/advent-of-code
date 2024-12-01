@@ -1,5 +1,3 @@
-use std::usize;
-
 use advent_of_code::open_file;
 
 fn main() {
